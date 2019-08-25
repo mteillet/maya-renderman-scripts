@@ -6,24 +6,17 @@ import maya.mel as mel
 
 #   Selected Variables
 #Edges
-edgeSelect = cmds.polySelect(edgeLoop = True)
+edgesSelected = cmds.ls(selection = True, shortNames = True)
 #Object
 curentObject = cmds.ls(selection = True, objectsOnly = True, shortNames = True)
+#Get the number of selected edges
+edgesNumber = cmds.polyEvaluate(edgeComponent = True)
+
 
 print(curentObject)
-print(edgeSelect)
+print(edgesSelected)
+print(edgesNumber)
 
-# select the other edge loops to close the loop
 
-selectEdgeLoop = "select -add "+ str(curentObject) + ".e" + str(edgeSelect)
-print(selectEdgeLoop)
-
-mel.eval(selectEdgeLoop)
-
-"""
-for i in edgeSelect:
-    cmds.select((curentObject) + ".e" + str(i))
-    select -add pSphere1.e[320:339] ;
-"""
-
+#Deselecting the specified edges
 
