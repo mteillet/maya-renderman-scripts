@@ -15,4 +15,7 @@ to "<ws>/sourceimages/anytexture.tiff"
   
 # AlembicRelativeRepath.py
 This scripts allow you to remerge the alembic broken links to the correct ones when you change your project location.
-It selects all the alembic nodes from your scene containing the string "cache/alembic" and replaces the characters before that by the current set project path. Then it remerges the alembic files and deletes the ancient Alembic nodes which had the broken paths
+
+It selects all the alembic nodes from your scene containing the string "cache/alembic" and replaces the characters before that by the current set project path.
+
+Then it remerges the alembic files and deletes the ancient Alembic nodes which had the broken paths.
