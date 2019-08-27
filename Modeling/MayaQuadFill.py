@@ -138,4 +138,8 @@ def gridFill():
     cmds.polyBridgeEdge(divisions=0)
     
     
+    ####    Smooth the new created vertices with polyAverageVertex  ####
+    
+    
+    
 #### Need to redefine the way divisions are calculated (works well with 4 and 5, but not with 1, 2, 3, 6, 7, etc...)
