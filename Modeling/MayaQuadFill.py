@@ -1,6 +1,6 @@
 import maya.cmds as cmds
 import maya.mel as mel
-import re
+import math
 
 ####    This script fills the selected edge loop with quads     ####
 
@@ -10,14 +10,14 @@ import re
 
 originalSelection = cmds.ls(orderedSelection=True, flatten=True)
 originaldivision = len(originalSelection)/8
-
+maxDiv = ((len(originalSelection)/4)-1)
 
 GridFill = cmds.window( title="Grid Fill", iconName='Grid Fill', widthHeight=(140, 90), toolbox = True)
 cmds.rowColumnLayout( numberOfColumns=2, columnWidth = [(1,75),(2,60)])
 cmds.text( label="Offset" )
 offset = cmds.intField(changeCommand = 'userInput()', value = 0)
-cmds.text( label="Divisions" )
-divisions = cmds.intField(changeCommand = 'userInput()', value = originaldivision)
+cmds.text( label="Add/Reduce" )
+divisions = cmds.intField(changeCommand = 'userInput()', value = originaldivision, minValue = 2, maxValue = maxDiv)
 
 cmds.separator(h=20, style = "none")
 cmds.separator(h=20, style = "none")
@@ -25,7 +25,7 @@ cmds.separator(h=10, style = "none")
 
 cmds.button( label = "Grid Fill", command = 'gridFill()')
 
-cmds.showWindow( window )
+cmds.showWindow( GridFill )
 
 
 
@@ -105,18 +105,18 @@ def gridFill():
     cmds.select(clear = True)
     cmds.select(firstBridgeBorder, secondBridgeBorder, add = True)
     
-    if userDivision % 2 == 0:
-        cmds.polyBridgeEdge(divisions = (userDivision+1))
-        
-    else:
-        cmds.polyBridgeEdge(divisions = (userDivision+2))
-
+    
+    ### FILLING THE FIRST TWO BRIDGES ####
+    
+    cmds.polyBridgeEdge(divisions = math.sqrt(pow(((2 * userDivision)-3), 2)))
+    
 
 
 
     ##############################
     #Filling the last two bridges#
     ##############################
+    
     
     cmds.select(clear = True)
     cmds.select(thirdBridgeBorder[0], add = True)
@@ -136,5 +136,6 @@ def gridFill():
     cmds.select(thirdBridgeBorder[1], fourthBridgeBorder[0], add = True, toggle = True)
     
     cmds.polyBridgeEdge(divisions=0)
+    
     
 #### Need to redefine the way divisions are calculated (works well with 4 and 5, but not with 1, 2, 3, 6, 7, etc...)
