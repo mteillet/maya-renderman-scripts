@@ -25,6 +25,7 @@ Then it remerges the alembic files and deletes the ancient Alembic nodes which h
 This script allows you to fill a selection with only quads, trying to replicate the Blender Grid fill function. You can offset (rotate) the direction of the gridfill, you can use the increase/decrease in order to change the  way the corners of the edge loop are defined
 
 Here is a demonstration :
+
 ![](Maya_GridFill_Demo.gif)
 
 However, this script still has a few issues.
