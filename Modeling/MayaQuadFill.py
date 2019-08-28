@@ -12,15 +12,20 @@ originalSelection = cmds.ls(orderedSelection=True, flatten=True)
 originaldivision = len(originalSelection)/8
 maxDiv = ((len(originalSelection)/4)-1)
 
-GridFill = cmds.window( title="Grid Fill", iconName='Grid Fill', widthHeight=(140, 90), toolbox = True)
+GridFill = cmds.window( title="Grid Fill", iconName='Grid Fill', widthHeight=(140, 120), toolbox = True)
 cmds.rowColumnLayout( numberOfColumns=2, columnWidth = [(1,75),(2,60)])
 cmds.text( label="Offset" )
 offset = cmds.intField(changeCommand = 'userInput()', value = 0)
 cmds.text( label="Add/Reduce" )
 divisions = cmds.intField(changeCommand = 'userInput()', value = originaldivision, minValue = 2, maxValue = maxDiv)
+cmds.text( label="Relax" )
+relaxChoice = cmds.optionMenu( label='', changeCommand='userInput()' )
+cmds.menuItem( label='Yes' )
+cmds.menuItem( label='No' )
 
 cmds.separator(h=20, style = "none")
 cmds.separator(h=20, style = "none")
+cmds.separator(h=10, style = "none")
 cmds.separator(h=10, style = "none")
 
 cmds.button( label = "Grid Fill", command = 'gridFill()')
@@ -37,8 +42,10 @@ def userInput():
     #Get the inputs from offset and divisions
     edgeOffset = cmds.intField(offset, q=1, v=1)
     edgeDivision = cmds.intField(divisions, q=1, v=1)
+    relax = cmds.optionMenu(relaxChoice, q=1, v=1)
     print("Edge offset is : " + str(edgeOffset))
-    print("Bridge Division is : " + str(edgeDivision))    
+    print("Bridge Division is : " + str(edgeDivision))
+    print(relax)    
     return(edgeOffset)
     return(edgeDivision)
 
@@ -46,6 +53,7 @@ def userInput():
 def gridFill():
     userOffset = cmds.intField(offset, q=1, v=1)
     userDivision = cmds.intField(divisions, q=1, v=1)
+    relax = cmds.optionMenu(relaxChoice, q=1, v=1)
     
     print("Start")  
 
@@ -79,6 +87,16 @@ def gridFill():
     secondBridgeBorder = secondHalf
     thirdBridgeBorder = []
     fourthBridgeBorder = []
+    
+    
+    ### Select all current vertices
+    
+    
+    mel.eval("invertSelection;")
+    cmds.polyListComponentConversion(fromEdge = True, toVertex = True)
+    verticesForExclusion = cmds.polyListComponentConversion(fromEdge = True, toVertex = True)
+    cmds.select(verticesForExclusion)
+    
 
     # Removes from the bridges border the number of divisions needed from both bridge borders
     # Also resets i at the end of while loop
@@ -139,7 +157,21 @@ def gridFill():
     
     
     ####    Smooth the new created vertices with polyAverageVertex  ####
+    if relax == "Yes":
+        cmds.select(clear = True)
+        mel.eval("setSelectMode components Components;")
+        mel.eval("selectType -smp 0 -sme 0 -smf 0 -smu 0 -pv 1 -pe 0 -pf 0 -puv 0;")
+        cmds.select(verticesForExclusion)
+        mel.eval("invertSelection;")
+        verticesForRelax = []
+        verticesForRelax = cmds.ls(selection = True, flatten = True)
+        cmds.polyAverageVertex( verticesForRelax, iterations = 100)
+        mel.eval("selectType -smp 0 -sme 0 -smf 0 -smu 0 -pv 0 -pe 1 -pf 0 -puv 0;")
+        
+    cmds.select(clear = True)
+    print("Gridd Fill Done")
     
     
-    
-#### Need to redefine the way divisions are calculated (works well with 4 and 5, but not with 1, 2, 3, 6, 7, etc...)
+# Still need to figure out how to get the original selection order right
+# https://forums.cgsociety.org/t/return-selection-orderd-by-edge-loop-maya-api/1577329/3
+# Could be a solution
