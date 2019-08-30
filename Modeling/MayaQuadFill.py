@@ -8,6 +8,21 @@ import math
 ####                MAYA WINDOW                 ####
 ####################################################
 
+#### This code lines allow for the initial selection to be automated. Does not work yet but should be the right path to make the bridges work on all kinds of holes
+
+####    originalSelection = str(cmds.ls(selection = True))
+
+####    originalSelectionStringged = ''.join(originalSelection)
+
+####    originalSelectionShortNamed = str(originalSelectionStringged).replace("[u'", "").replace("']","")
+
+####    print (originalSelectionShortNamed)
+
+####    loopSelection = mel.eval('polySelectSp -q -loop ' + originalSelectionShortNamed)
+
+####    cmds.select(loopSelection)
+
+
 originalSelection = cmds.ls(orderedSelection=True, flatten=True)
 originaldivision = len(originalSelection)/8
 maxDiv = ((len(originalSelection)/4)-1)
@@ -123,8 +138,11 @@ def gridFill():
     cmds.select(clear = True)
     cmds.select(firstBridgeBorder, secondBridgeBorder, add = True)
     
-    
+
+
     ### FILLING THE FIRST TWO BRIDGES ####
+    
+    
     
     cmds.polyBridgeEdge(divisions = math.sqrt(pow(((2 * userDivision)-3), 2)))
     
@@ -175,3 +193,4 @@ def gridFill():
 # Still need to figure out how to get the original selection order right
 # https://forums.cgsociety.org/t/return-selection-orderd-by-edge-loop-maya-api/1577329/3
 # Could be a solution
+
