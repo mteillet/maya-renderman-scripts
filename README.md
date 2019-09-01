@@ -31,17 +31,6 @@ Here is a demonstration :
 
 ![](Maya_GridFill_Demo.gif)
 
-However, this script still has a few issues.
-
-1st = The first loop selected will work only if the "cmds.ls(orderedSelection=True)" returns edges following each other. It sometime does not
-
-2nd = The window created is not great. It would be much better if the GridFill operated a first time with the default indicated settings.
-      It would also be much better to have a floating pannel (as it is the case for the Maya extrude tool for example).
-      The user would modified the default inputs if needed from this pannel
-      Everytime a value is modified, the gridfill should "undo" itself and reoperate again with the new user values
-
-3rd = Currently, this script works only if the number of edges selected is a multiple of 4. It should also be possible to make it work with multiples of 2
-
 
 # Thank you
 If you have any ideas for tools, or how to improve the current one, do not hesitate to email me at : martin.teillet@hotmail.fr or to create a branch :)
