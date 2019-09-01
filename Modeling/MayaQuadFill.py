@@ -8,22 +8,129 @@ import math
 ####                MAYA WINDOW                 ####
 ####################################################
 
-#### This code lines allow for the initial selection to be automated. Does not work yet but should be the right path to make the bridges work on all kinds of holes
 
-####    originalSelection = str(cmds.ls(selection = True))
+####        Setting ordered selection as true in the preferences        ####
 
-####    originalSelectionStringged = ''.join(originalSelection)
-
-####    originalSelectionShortNamed = str(originalSelectionStringged).replace("[u'", "").replace("']","")
-
-####    print (originalSelectionShortNamed)
-
-####    loopSelection = mel.eval('polySelectSp -q -loop ' + originalSelectionShortNamed)
-
-####    cmds.select(loopSelection)
+cmds.selectPref(trackSelectionOrder=True)
 
 
-originalSelection = cmds.ls(orderedSelection=True, flatten=True)
+####        User Inputs         ####
+userOffset = 0
+userDivision = len(originalSelection)/8
+
+#####       Selection changes       #### 
+
+i = 0
+newSelection = []
+selectionGrowList = []
+
+originalSelection = (cmds.ls(selection = True, flatten = True))
+
+mel.eval("invertSelection;")
+invertedOriginal = (cmds.ls(selection = True, flatten = True))
+
+cmds.select(clear = True)
+
+
+# Get the first edge of the border selected
+cmds.select(originalSelection[4])
+
+# Grow selection until the whole border is selected
+while i < (len(originalSelection)/2):
+    cmds.polySelectConstraint( pp=1 )
+    selectionGrowList.append(cmds.ls(selection = True, flatten = True))
+    i += 1
+
+# Finding the middle of the list<
+midHalf = (i/2)-1
+midSubstract = (i/2)-2
+
+# Reset i value
+i = 0
+
+
+####        Selecting the two opposite edges suites         ####
+
+
+# Selecting the first two opposite edges
+cmds.select(clear = True)
+cmds.select(selectionGrowList[midHalf])
+cmds.select(selectionGrowList[midSubstract], deselect = True)
+
+
+# Growing the selection by the number of user divisions
+while i < userDivision:
+    cmds.polySelectConstraint( pp=1 )
+    i += 1 
+cmds.select(invertedOriginal, deselect = True)
+
+
+
+####        Getting the number of division on the bridge           ####
+firstBridge = cmds.ls(selection = True, flatten = True)
+# The number of divisions needed is equal to the remaining edges on the original edge loop divided by 2 and minus 3
+divisionsNeeded = (len(originalSelection) - len(firstBridge))/2 - 3
+
+# Bridging the first loop and dividing it
+cmds.polyBridgeEdge(divisions=divisionsNeeded)
+
+
+# now need to find a way to select the remaining edge loops in order to bridge them
+# The shrink selection around loop should work
+# Should find indications in the cmds.polySelectConstraint( pp=1 ) documentation
+
+"""
+
+grownSelection = (cmds.ls(selection = True, flatten = True))
+
+# Substract from the new selection edges presents in the inverted original
+
+
+#Sets the new border continuous selection
+newSelection = cmds.ls(selection = True, flatten = True, )
+cmds.select(clear = True)
+
+#Get the new selection length in order to be able to select the opposite edge
+newSelectionLength = len(newSelection)
+print(newSelectionLength)
+oppositeEdge = (newSelectionLength/2)
+
+
+#Select the 2 opposite edges
+cmds.select(newSelection[0], newSelection[oppositeEdge])
+
+
+
+
+
+#while selectLoop < halfSelection:
+#    mel.eval('GrowLoopPolygonSelectionRegion')
+#    selectLoop +=1
+
+orderedSelection = cmds.ls(selection = True, flatten = True, )
+# cmds.select(clear = True)
+
+
+
+#for i in originalSelection:
+#    cmds.GrowLoopPolygonSelectionRegion
+
+
+
+
+
+originalSelectionStringged = ''.join(originalSelection)
+
+originalSelectionShortNamed = str(originalSelectionStringged).replace("[u'", "").replace("']","")
+
+print (originalSelectionShortNamed)
+
+
+
+
+
+
+#originalSelection = cmds.ls(orderedSelection=True, flatten=True)
 originaldivision = len(originalSelection)/8
 maxDiv = ((len(originalSelection)/4)-1)
 
@@ -194,3 +301,4 @@ def gridFill():
 # https://forums.cgsociety.org/t/return-selection-orderd-by-edge-loop-maya-api/1577329/3
 # Could be a solution
 
+"""
