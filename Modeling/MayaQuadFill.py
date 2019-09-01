@@ -14,6 +14,10 @@ import math
 cmds.selectPref(trackSelectionOrder=True)
 
 
+####        Getting the original selection          ####
+originalSelection = (cmds.ls(selection = True, flatten = True))
+
+
 ####        User Inputs         ####
 userOffset = 0
 userDivision = len(originalSelection)/8
@@ -24,7 +28,7 @@ i = 0
 newSelection = []
 selectionGrowList = []
 
-originalSelection = (cmds.ls(selection = True, flatten = True))
+
 
 mel.eval("invertSelection;")
 invertedOriginal = (cmds.ls(selection = True, flatten = True))
@@ -33,11 +37,11 @@ cmds.select(clear = True)
 
 
 # Get the first edge of the border selected
-cmds.select(originalSelection[4])
+cmds.select(originalSelection[userOffset])
 
 # Grow selection until the whole border is selected
 while i < (len(originalSelection)/2):
-    cmds.polySelectConstraint( pp=1 )
+    mel.eval('select `ls -sl`;PolySelectTraverse 1;select `ls -sl`;')
     selectionGrowList.append(cmds.ls(selection = True, flatten = True))
     i += 1
 
@@ -63,7 +67,8 @@ while i < userDivision:
     cmds.polySelectConstraint( pp=1 )
     i += 1 
 cmds.select(invertedOriginal, deselect = True)
-
+# reset i
+i = 0
 
 
 ####        Getting the number of division on the bridge           ####
@@ -79,54 +84,54 @@ cmds.polyBridgeEdge(divisions=divisionsNeeded)
 # The shrink selection around loop should work
 # Should find indications in the cmds.polySelectConstraint( pp=1 ) documentation
 
-"""
-
-grownSelection = (cmds.ls(selection = True, flatten = True))
-
-# Substract from the new selection edges presents in the inverted original
-
-
-#Sets the new border continuous selection
-newSelection = cmds.ls(selection = True, flatten = True, )
+# Get the first edge of the last two bridges
 cmds.select(clear = True)
+cmds.select(originalSelection)
+cmds.select( firstBridge, deselect = True )
 
-#Get the new selection length in order to be able to select the opposite edge
-newSelectionLength = len(newSelection)
-print(newSelectionLength)
-oppositeEdge = (newSelectionLength/2)
+otherBridge = cmds.ls(selection = True, flatten = True)
 
-
-#Select the 2 opposite edges
-cmds.select(newSelection[0], newSelection[oppositeEdge])
-
+# Minus border edges
+mel.eval('select `ls -sl`;PolySelectTraverse 6; select `ls -sl`;')
+actualBridge = cmds.ls(selection = True, flatten = True)
 
 
-
-
-#while selectLoop < halfSelection:
-#    mel.eval('GrowLoopPolygonSelectionRegion')
-#    selectLoop +=1
-
-orderedSelection = cmds.ls(selection = True, flatten = True, )
-# cmds.select(clear = True)
+#Getting border edges to remove for the last two bridges
+cmds.select(clear = True)
+cmds.select(otherBridge)
+cmds.select(actualBridge, deselect = True)
+minusBridge = cmds.ls(selection = True, flatten = True)
 
 
 
-#for i in originalSelection:
-#    cmds.GrowLoopPolygonSelectionRegion
+#####        Selecting the remaining bridges           ####
 
 
+cmds.select(clear = True)
+cmds.select(otherBridge[0])
+# Selecting the whole loop
+cmds.polySelectSp(loop=True)
+secondBridge = cmds.ls(selection = True, flatten = True)
 
+# Deselect the minusBridge
+cmds.select(minusBridge, deselect = True)
 
+cmds.polyBridgeEdge(divisions=0)
 
-originalSelectionStringged = ''.join(originalSelection)
+#LastBridge
+cmds.select(clear = True)
+cmds.select(otherBridge)
+cmds.select(secondBridge, deselect = True)
 
-originalSelectionShortNamed = str(originalSelectionStringged).replace("[u'", "").replace("']","")
+# Selecting the whole loop
+cmds.polySelectSp(loop=True)
 
-print (originalSelectionShortNamed)
+# Deselect the minusBridge
+cmds.select(minusBridge, deselect = True)
 
+cmds.polyBridgeEdge(divisions=0)
 
-
+"""
 
 
 
