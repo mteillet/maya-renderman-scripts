@@ -4,40 +4,30 @@ import math
 
 ####    This script fills the selected edge loop with quads     ####
 
-####################################################
-####                MAYA WINDOW                 ####
-####################################################
+
 
 
 originalSelection = (cmds.ls(selection = True, flatten = True))
-originaldivision = len(originalSelection)/8
-maxDiv = ((len(originalSelection)/4)-1)
-maxOff = (len(originalSelection)-1)
+
+# Check if we can run grid fill
+if len(originalSelection) % 2 != 0:
+    print("Selected loop needs to contain an even edges number")
+    
+if len(originalSelection) < 4:
+    print("Selected loop needs to contain at least 4 edges")
+    
+# Define the original first bridge optimal number
+if len(originalSelection) % 2 == 0:
+    OptimalFirstBridge = ((len(originalSelection)/2)-4)
+else :
+    OptimalFirstBridge = ((len(originalSelection)/2)-3)
+    
 
 
+####                    !!!!            NEED TO REDEFINE HOW THE DIVISION INPUT WORKS             !!!!               ####
+originaldivision = (((len(originalSelection) - OptimalFirstBridge - 4) / 2) - 1)
 
-GridFill = cmds.window( title="Grid Fill", iconName='Grid Fill', widthHeight=(140, 120), toolbox = True)
-cmds.rowColumnLayout( numberOfColumns=2, columnWidth = [(1,75),(2,60)])
-cmds.text( label="Offset" )
-offsetBox = cmds.intField(changeCommand = 'newValue()', value = 0, minValue = 0, maxValue = maxOff)
-cmds.text( label="Add/Reduce" )
-divisions = cmds.intField(changeCommand = 'newValue()', value = originaldivision, minValue = 2, maxValue = maxDiv)
-cmds.text( label="Relax" )
-relaxChoice = cmds.optionMenu( label='', changeCommand='userInput()' )
-cmds.menuItem( label='Yes' )
-cmds.menuItem( label='No' )
 
-cmds.separator(h=20, style = "none")
-cmds.separator(h=20, style = "none")
-cmds.separator(h=10, style = "none")
-cmds.separator(h=10, style = "none")
-
-cmds.button( label = "Grid Fill", command = 'gridFill()')
-
-cmds.showWindow( GridFill )
-
-userInput()
-gridFill()
 
 
 ####################################################
@@ -69,8 +59,9 @@ def gridFill():
     cmds.selectPref(trackSelectionOrder=True)
     userOffset = cmds.intField(offsetBox, q=1, v=1)
     userDivision = cmds.intField(divisions, q=1, v=1)
+    relax = cmds.optionMenu(relaxChoice, q=1, v=1)
 
-
+    
     ####        Getting the original selection          ####
     originalSelection = (cmds.ls(selection = True, flatten = True))
     # Storing the number of vertices in order to be able to relax the new created ones
@@ -83,15 +74,9 @@ def gridFill():
     cmds.select(originalSelection)
 
 
-
-    ####        User Inputs         ####
-    #userOffset = 0
-    #userDivision = len(originalSelection)/8
-
     #####       Selection changes       #### 
 
     i = 0
-    newSelection = []
     selectionGrowList = []
 
 
@@ -103,18 +88,25 @@ def gridFill():
 
 
     # Get the first edge of the border selected
-    cmds.select(originalSelection[userOffset])
+    cmds.select(originalSelection[userOffset+1])
+    if len(originalSelection) % 4 == 0:
+        mel.eval('select `ls -sl`;PolySelectTraverse 1;select `ls -sl`;')
+        cmds.select(invertedOriginal, deselect = True)
+        originalOddSelection = (cmds.ls(selection = True, flatten = True))
+        cmds.select(clear = True)
+        cmds.select(originalOddSelection[0], originalOddSelection[1])
+        
 
     # Grow selection until the whole border is selected
-    while i < (len(originalSelection)/2):
+    while i < (len(originalSelection)/2-1):
         mel.eval('select `ls -sl`;PolySelectTraverse 1;select `ls -sl`;')
         selectionGrowList.append(cmds.ls(selection = True, flatten = True))
         i += 1
 
-    # Finding the middle of the list<
-    midHalf = (i/2)-1
+    # Finding the two middle edges of the list
+    midHalf = (i/2)
     midSubstract = (i/2)-2
-
+    
     # Reset i value
     i = 0
 
@@ -126,22 +118,27 @@ def gridFill():
     cmds.select(clear = True)
     cmds.select(selectionGrowList[midHalf])
     cmds.select(selectionGrowList[midSubstract], deselect = True)
+    cmds.select(invertedOriginal, deselect = True)
+    
+
 
 
     # Growing the selection by the number of user divisions
-    while i < userDivision:
-        cmds.polySelectConstraint( pp=1 )
-        i += 1 
+    while i < userDivision-4:
+        mel.eval('select `ls -sl`;PolySelectTraverse 1;select `ls -sl`;')
+        i += 1
     cmds.select(invertedOriginal, deselect = True)
     # reset i
     i = 0
 
 
+
     ####        Getting the number of division on the bridge           ####
     firstBridge = cmds.ls(selection = True, flatten = True)
-    # The number of divisions needed is equal to the remaining edges on the original edge loop divided by 2 and minus 3
-    divisionsNeeded = (len(originalSelection) - len(firstBridge))/2 - 3
 
+    # The number of divisions needed is equal to the remaining edges on the original edge loop divided by 2 and minus 3
+    divisionsNeeded = (len(originalSelection) - len(firstBridge) - 4)/2 - 1
+    
     # Bridging the first loop and dividing it
     cmds.polyBridgeEdge(divisions=divisionsNeeded)
 
@@ -184,6 +181,7 @@ def gridFill():
 
     cmds.polyBridgeEdge(divisions=0)
 
+
     #LastBridge
     cmds.select(clear = True)
     cmds.select(otherBridge)
@@ -207,11 +205,59 @@ def gridFill():
 
     ####        Relax the new vertices      ####
     cmds.select(clear = True)
-    mel.eval("setSelectMode components Components;")
-    mel.eval("selectType -smp 0 -sme 0 -smf 0 -smu 0 -pv 1 -pe 0 -pf 0 -puv 0;")
-    cmds.select(verticesForExclusion)
-    mel.eval("invertSelection;")
-    verticesForRelax = []
-    verticesForRelax = cmds.ls(selection = True, flatten = True)
-    cmds.polyAverageVertex( verticesForRelax, iterations = 100)
-    mel.eval("selectType -smp 0 -sme 0 -smf 0 -smu 0 -pv 0 -pe 1 -pf 0 -puv 0;")
+    
+    if relax == "Yes":
+        mel.eval("setSelectMode components Components;")
+        mel.eval("selectType -smp 0 -sme 0 -smf 0 -smu 0 -pv 1 -pe 0 -pf 0 -puv 0;")
+        cmds.select(verticesForExclusion)
+        mel.eval("invertSelection;")
+        verticesForRelax = []
+        verticesForRelax = cmds.ls(selection = True, flatten = True)
+        cmds.polyAverageVertex( verticesForRelax, iterations = 100)
+        mel.eval("selectType -smp 0 -sme 0 -smf 0 -smu 0 -pv 0 -pe 1 -pf 0 -puv 0;")
+        cmds.select(clear = True)
+
+
+
+
+
+####################################################
+####                MAYA WINDOW                 ####
+####################################################
+
+
+GridFill = cmds.window( title="Grid Fill", iconName='Grid Fill', widthHeight=(220, 220), toolbox = True)
+cmds.rowColumnLayout( numberOfColumns=2, columnWidth = [(1,155),(2,60)])
+cmds.text( label="Offset" )
+offsetBox = cmds.intField(changeCommand = 'newValue()', value = 0, minValue = 0)
+
+cmds.separator(h=20, style = "none")
+cmds.separator(h=20, style = "none")
+cmds.text( label=("Add/reduce ") )
+cmds.separator(h=20, style = "none")
+cmds.text( label=("if the loop") )
+divisions = cmds.intField(changeCommand = 'newValue()', value = originaldivision)
+cmds.text( label=("is superior to") )
+cmds.separator(h=20, style = "none")
+cmds.text( label=("16 edges") )
+cmds.separator(h=20, style = "none")
+cmds.separator(h=20, style = "none")
+cmds.separator(h=20, style = "none")
+cmds.text( label="Relax" )
+relaxChoice = cmds.optionMenu( label='', changeCommand='userInput()' )
+cmds.menuItem( label='Yes' )
+cmds.menuItem( label='No' )
+
+cmds.separator(h=20, style = "none")
+cmds.separator(h=20, style = "none")
+cmds.separator(h=10, style = "none")
+cmds.separator(h=10, style = "none")
+
+cmds.button( label = "Grid Fill", command = 'gridFill()')
+
+cmds.showWindow( GridFill )
+
+userInput()
+gridFill()
+
+
