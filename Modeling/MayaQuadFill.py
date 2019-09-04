@@ -1,5 +1,6 @@
 import maya.cmds as cmds
 import maya.mel as mel
+import maya.OpenMaya as om
 import math
 
 ####    This script fills the selected edge loop with quads     ####
@@ -24,8 +25,36 @@ else :
     
 
 
-####                    !!!!            NEED TO REDEFINE HOW THE DIVISION INPUT WORKS             !!!!               ####
+####                    DEFINE THE OPTIMAL DIVISIONS AND THE MAX/MIN               ####
 originaldivision = (((len(originalSelection) - OptimalFirstBridge - 4) / 2) - 1)
+MaxOffset = (len(originalSelection) - 2)
+
+# Defining the min and max values of divisions
+if len(originalSelection) > 9:
+    lessTenCheck = "True"
+    if len(originalSelection) % 2 == 0:
+        LoopStateCheck = "True"
+        if len(originalSelection) < 12:
+            minDiv = 1
+            maxDiv = 2
+            originaldivision = 1
+        else:
+            if len(originalSelection) < 16:
+                minDiv = 2
+                maxDiv = 3
+                originaldivision = 2
+            else:
+                minDiv = 4
+                if ((len(originalSelection) / 2) % 2) == 0:
+                    maxDiv = (len(originalSelection) / 4) + 1
+                    originaldivision = ((minDiv + maxDiv) // 2) + 1
+                else:
+                    maxDiv = (len(originalSelection) % 4) + 3
+                    originaldivision = ((minDiv + maxDiv) // 2)               
+    else:
+        LoopStateCheck = "False"
+else:
+    lessTenCheck = "False"
 
 
 
@@ -39,6 +68,7 @@ def newValue():
     print("newGridFill")
     userInput()
     gridFill()
+    print("DONE")
 
 
 def userInput():    
@@ -225,39 +255,73 @@ def gridFill():
 ####                MAYA WINDOW                 ####
 ####################################################
 
+#Check if there are 4 edges or more in the loop selection
 
-GridFill = cmds.window( title="Grid Fill", iconName='Grid Fill', widthHeight=(220, 220), toolbox = True)
-cmds.rowColumnLayout( numberOfColumns=2, columnWidth = [(1,155),(2,60)])
-cmds.text( label="Offset" )
-offsetBox = cmds.intField(changeCommand = 'newValue()', value = 0, minValue = 0)
+if (len(originalSelection)) == 4:
+    cmds.select(originalSelection)
+    cmds.polyCloseBorder()
+    
+if (len(originalSelection)) == 6:
+    cmds.select(originalSelection)
+    cmds.polyCloseBorder()
 
-cmds.separator(h=20, style = "none")
-cmds.separator(h=20, style = "none")
-cmds.text( label=("Add/reduce ") )
-cmds.separator(h=20, style = "none")
-cmds.text( label=("if the loop") )
-divisions = cmds.intField(changeCommand = 'newValue()', value = originaldivision)
-cmds.text( label=("is superior to") )
-cmds.separator(h=20, style = "none")
-cmds.text( label=("16 edges") )
-cmds.separator(h=20, style = "none")
-cmds.separator(h=20, style = "none")
-cmds.separator(h=20, style = "none")
-cmds.text( label="Relax" )
-relaxChoice = cmds.optionMenu( label='', changeCommand='userInput()' )
-cmds.menuItem( label='Yes' )
-cmds.menuItem( label='No' )
+if (len(originalSelection)) == 8:
+    cmds.select(originalSelection)
+    cmds.polyCloseBorder()
+    
+if lessTenCheck == "True":
+    
+    #Check if the number of edges in the loop is even
+    if LoopStateCheck == "True":
+    
+        GridFill = cmds.window( title="Grid Fill", iconName='Grid Fill', widthHeight=(230, 110), toolbox = True)
+        cmds.rowColumnLayout( numberOfColumns=4, columnWidth = [(1,80),(2,40),(3,45),(4,60)])
+        cmds.text( label="Offset" )
+        cmds.text( label="from 0", font ="smallFixedWidthFont" )
+        offsetBox = cmds.intField(changeCommand = 'newValue()', value = 0, minValue = 0, maxValue = MaxOffset)
+        cmds.text( label= "up to " + str(MaxOffset), font ="smallFixedWidthFont" )
 
-cmds.separator(h=20, style = "none")
-cmds.separator(h=20, style = "none")
-cmds.separator(h=10, style = "none")
-cmds.separator(h=10, style = "none")
+        cmds.separator(h=20, style = "none")
+        cmds.separator(h=20, style = "none")
+        cmds.separator(h=20, style = "none")
+        cmds.separator(h=20, style = "none")
+        cmds.text( label=("Add/reduce ") )
+        cmds.text( label= "from " + str(minDiv), font ="smallFixedWidthFont" )
+        divisions = cmds.intField(changeCommand = 'newValue()', value = originaldivision, minValue = minDiv, maxValue = maxDiv)
+        cmds.text( label= "up to " + str(maxDiv), font ="smallFixedWidthFont" )
+        
+        cmds.separator(h=20, style = "none")
+        cmds.separator(h=20, style = "none")
+        cmds.separator(h=20, style = "none")
+        cmds.separator(h=20, style = "none")
+        cmds.text( label="Relax" )
+        cmds.separator(h=20, style = "none")
+        relaxChoice = cmds.optionMenu( label='', changeCommand = 'newValue()' )
+        cmds.menuItem( label='Yes' )
+        cmds.menuItem( label='No' )
 
-cmds.button( label = "Grid Fill", command = 'gridFill()')
+        cmds.showWindow( GridFill )
 
-cmds.showWindow( GridFill )
-
-userInput()
-gridFill()
-
-
+        userInput()
+        gridFill()
+        
+    
+        if len(originalSelection) < 16 :
+            om.MGlobal.displayWarning("IMPOSSIBLE TO TWEAK DIVISION SETTINGS IF SELECTION WAS LESS THAN 16")
+    
+      
+    else:
+        cmds.error("ERROR : Selection must contain an even number of edges")
+        
+else:
+    if len(originalSelection) < 10:
+        
+        if len(originalSelection) < 16:
+            om.MGlobal.displayWarning("Can not tweak settings with less thant 16 edges")
+        
+        if len(originalSelection) % 2 != 0:
+            cmds.error("ERROR : Selection must contain an even number of edges")
+        
+        if len(originalSelection) < 4:
+            cmds.error("ERROR: Selection must containt 4 edges or more")
+    
