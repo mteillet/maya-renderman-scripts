@@ -29,7 +29,7 @@ This script allows you to fill a selection with only quads, trying to replicate 
 
 Here is a demonstration :
 
-![](Maya_GridFill_Demo.gif)
+![](.imgs\.gifs\Maya_GridFill_Demo.gif)
 
 However, this script still has a few issues.
 
