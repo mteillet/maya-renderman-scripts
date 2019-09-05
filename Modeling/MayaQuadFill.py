@@ -3,9 +3,12 @@ import maya.mel as mel
 import maya.OpenMaya as om
 import math
 
-####    This script fills the selected edge loop with quads     ####
+####    Copyright 2019 TEILLET Martin - Licensed under the Apache License, Version 2.0 (the "License");
+####    you may not use this file except in compliance with the License. You may obtain a copy of the License at:
+####   http://www.apache.org/licenses/LICENSE-2.0
 
 
+####    This script allows you to close any even edge border from four only with quads      ####
 
 
 originalSelection = (cmds.ls(selection = True, flatten = True))
@@ -252,7 +255,7 @@ def gridFill():
 
 
 ####################################################
-####                MAYA WINDOW                 ####
+####                    MAYA WINDOW                 ####
 ####################################################
 
 #Check if there are 4 edges or more in the loop selection
@@ -263,11 +266,14 @@ if (len(originalSelection)) == 4:
     
 if (len(originalSelection)) == 6:
     cmds.select(originalSelection)
-    cmds.polyCloseBorder()
+    cmds.select(originalSelection[0], originalSelection[1], originalSelection[3], originalSelection[4])
+    cmds.polyBridgeEdge(divisions=0)
 
 if (len(originalSelection)) == 8:
     cmds.select(originalSelection)
-    cmds.polyCloseBorder()
+    cmds.select(originalSelection[0], originalSelection[1], originalSelection[2], originalSelection[4], originalSelection[5], originalSelection[6])
+    cmds.polyBridgeEdge(divisions=0)
+
     
 if lessTenCheck == "True":
     
@@ -286,10 +292,20 @@ if lessTenCheck == "True":
         cmds.separator(h=20, style = "none")
         cmds.separator(h=20, style = "none")
         cmds.text( label=("Add/reduce ") )
-        cmds.text( label= "from " + str(minDiv), font ="smallFixedWidthFont" )
-        divisions = cmds.intField(changeCommand = 'newValue()', value = originaldivision, minValue = minDiv, maxValue = maxDiv)
-        cmds.text( label= "up to " + str(maxDiv), font ="smallFixedWidthFont" )
-        
+        if (len(originalSelection) < 12):
+            cmds.separator(h=20, style = "none")
+            divisions = cmds.intField(changeCommand = 'newValue()', value = 1, minValue = minDiv, maxValue = maxDiv)
+            cmds.text( label= "FIXED 1", font ="smallFixedWidthFont" )
+        else :
+            if (len(originalSelection) < 16):
+                cmds.separator(h=20, style = "none")
+                divisions = cmds.intField(changeCommand = 'newValue()', value = 2, minValue = minDiv, maxValue = maxDiv)
+                cmds.text( label= "FIXED 2", font ="smallFixedWidthFont" )
+            else:
+                cmds.text( label= "from " + str(minDiv), font ="smallFixedWidthFont" )
+                divisions = cmds.intField(changeCommand = 'newValue()', value = originaldivision, minValue = minDiv, maxValue = maxDiv)
+                cmds.text( label= "up to " + str(maxDiv), font ="smallFixedWidthFont" )
+                
         cmds.separator(h=20, style = "none")
         cmds.separator(h=20, style = "none")
         cmds.separator(h=20, style = "none")
