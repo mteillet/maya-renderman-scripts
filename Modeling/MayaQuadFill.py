@@ -3,15 +3,19 @@ import maya.mel as mel
 import maya.OpenMaya as om
 import math
 
+
 ####    Copyright 2019 TEILLET Martin - Licensed under the Apache License, Version 2.0 (the "License");
 ####    you may not use this file except in compliance with the License. You may obtain a copy of the License at:
 ####   http://www.apache.org/licenses/LICENSE-2.0
 
 
+
 ####    This script allows you to close any even edge border from four only with quads      ####
 
 
+
 originalSelection = (cmds.ls(selection = True, flatten = True))
+
 
 # Check if we can run grid fill
 if len(originalSelection) % 2 != 0:
@@ -28,9 +32,11 @@ else :
     
 
 
+
 ####                    DEFINE THE OPTIMAL DIVISIONS AND THE MAX/MIN               ####
 originaldivision = (((len(originalSelection) - OptimalFirstBridge - 4) / 2) - 1)
 MaxOffset = (len(originalSelection) - 2)
+
 
 # Defining the min and max values of divisions
 if len(originalSelection) > 9:
@@ -62,9 +68,11 @@ else:
 
 
 
+
 ####################################################
 ####               Grid fill code               ####
 ####################################################
+
 
 def newValue():
     cmds.undo()
@@ -72,6 +80,7 @@ def newValue():
     userInput()
     gridFill()
     print("DONE")
+
 
 
 def userInput():    
@@ -86,13 +95,16 @@ def userInput():
     return(userDivision)
 
 
+
 def gridFill():
     ####        Setting ordered selection as true in the preferences        ####
+
 
     cmds.selectPref(trackSelectionOrder=True)
     userOffset = cmds.intField(offsetBox, q=1, v=1)
     userDivision = cmds.intField(divisions, q=1, v=1)
     relax = cmds.optionMenu(relaxChoice, q=1, v=1)
+
 
     
     ####        Getting the original selection          ####
@@ -104,20 +116,26 @@ def gridFill():
     verticesForExclusion = cmds.polyListComponentConversion(fromEdge = True, toVertex = True)
     cmds.select(verticesForExclusion)
 
+
     cmds.select(originalSelection)
 
 
+
     #####       Selection changes       #### 
+
 
     i = 0
     selectionGrowList = []
 
 
 
+
     mel.eval("invertSelection;")
     invertedOriginal = (cmds.ls(selection = True, flatten = True))
 
+
     cmds.select(clear = True)
+
 
 
     # Get the first edge of the border selected
@@ -130,11 +148,13 @@ def gridFill():
         cmds.select(originalOddSelection[0], originalOddSelection[1])
         
 
+
     # Grow selection until the whole border is selected
     while i < (len(originalSelection)/2-1):
         mel.eval('select `ls -sl`;PolySelectTraverse 1;select `ls -sl`;')
         selectionGrowList.append(cmds.ls(selection = True, flatten = True))
         i += 1
+
 
     # Finding the two middle edges of the list
     midHalf = (i/2)
@@ -144,7 +164,9 @@ def gridFill():
     i = 0
 
 
+
     ####        Selecting the two opposite edges suites         ####
+
 
 
     # Selecting the first two opposite edges
@@ -153,6 +175,7 @@ def gridFill():
     cmds.select(selectionGrowList[midSubstract], deselect = True)
     cmds.select(invertedOriginal, deselect = True)
     
+
 
 
 
@@ -166,8 +189,10 @@ def gridFill():
 
 
 
+
     ####        Getting the number of division on the bridge           ####
     firstBridge = cmds.ls(selection = True, flatten = True)
+
 
     # The number of divisions needed is equal to the remaining edges on the original edge loop divided by 2 and minus 3
     divisionsNeeded = (len(originalSelection) - len(firstBridge) - 4)/2 - 1
@@ -176,20 +201,25 @@ def gridFill():
     cmds.polyBridgeEdge(divisions=divisionsNeeded)
 
 
+
     # now need to find a way to select the remaining edge loops in order to bridge them
     # The shrink selection around loop should work
     # Should find indications in the cmds.polySelectConstraint( pp=1 ) documentation
+
 
     # Get the first edge of the last two bridges
     cmds.select(clear = True)
     cmds.select(originalSelection)
     cmds.select( firstBridge, deselect = True )
 
+
     otherBridge = cmds.ls(selection = True, flatten = True)
+
 
     # Minus border edges
     mel.eval('select `ls -sl`;PolySelectTraverse 6; select `ls -sl`;')
     actualBridge = cmds.ls(selection = True, flatten = True)
+
 
 
     #Getting border edges to remove for the last two bridges
@@ -200,7 +230,9 @@ def gridFill():
 
 
 
+
     #####        Selecting the remaining bridges           ####
+
 
 
     cmds.select(clear = True)
@@ -209,10 +241,13 @@ def gridFill():
     cmds.polySelectSp(loop=True)
     secondBridge = cmds.ls(selection = True, flatten = True)
 
+
     # Deselect the minusBridge
     cmds.select(minusBridge, deselect = True)
 
+
     cmds.polyBridgeEdge(divisions=0)
+
 
 
     #LastBridge
@@ -222,18 +257,23 @@ def gridFill():
     cmds.select(secondBridge, deselect = True)
     lastBridge = cmds.ls(selection = True, flatten = True)
 
+
     cmds.select(clear = True)
     cmds.select(lastBridge[0])
+
 
     # Selecting the whole loop
     cmds.polySelectSp(loop=True)
 
 
 
+
     # Deselect the minusBridge
     cmds.select(minusBridge, deselect = True)
 
+
     cmds.polyBridgeEdge(divisions=0)
+
 
 
     ####        Relax the new vertices      ####
@@ -254,11 +294,14 @@ def gridFill():
 
 
 
+
 ####################################################
 ####                    MAYA WINDOW                 ####
 ####################################################
 
+
 #Check if there are 4 edges or more in the loop selection
+
 
 if (len(originalSelection)) == 4:
     cmds.select(originalSelection)
@@ -269,10 +312,12 @@ if (len(originalSelection)) == 6:
     cmds.select(originalSelection[0], originalSelection[1], originalSelection[3], originalSelection[4])
     cmds.polyBridgeEdge(divisions=0)
 
+
 if (len(originalSelection)) == 8:
     cmds.select(originalSelection)
     cmds.select(originalSelection[0], originalSelection[1], originalSelection[2], originalSelection[4], originalSelection[5], originalSelection[6])
     cmds.polyBridgeEdge(divisions=0)
+
 
     
 if lessTenCheck == "True":
@@ -286,6 +331,7 @@ if lessTenCheck == "True":
         cmds.text( label="from 0", font ="smallFixedWidthFont" )
         offsetBox = cmds.intField(changeCommand = 'newValue()', value = 0, minValue = 0, maxValue = MaxOffset)
         cmds.text( label= "up to " + str(MaxOffset), font ="smallFixedWidthFont" )
+
 
         cmds.separator(h=20, style = "none")
         cmds.separator(h=20, style = "none")
@@ -316,7 +362,9 @@ if lessTenCheck == "True":
         cmds.menuItem( label='Yes' )
         cmds.menuItem( label='No' )
 
+
         cmds.showWindow( GridFill )
+
 
         userInput()
         gridFill()
@@ -341,3 +389,4 @@ else:
         if len(originalSelection) < 4:
             cmds.error("ERROR: Selection must containt 4 edges or more")
     
+
