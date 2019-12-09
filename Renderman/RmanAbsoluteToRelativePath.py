@@ -7,7 +7,7 @@ cmds.select(adn = True)
 
 #Storing all nodes in a list and printing it
 Allnodes = cmds.ls(selection = True)
-print(Allnodes)
+
 
 # Variables for the loop
 n = 0
@@ -20,14 +20,14 @@ currentWorkspace = cmds.workspace( q=True, rd=True)
 #Checking object type
 for i in Allnodes:
     objType = cmds.objectType(Allnodes[n])    
-    print (n)
+
     print (objType)
 
     # If object type is pixar texture, append it to a new list
     if objType == "PxrTexture":
         # Set the current attribute to ThePxrTexture.filename
         currentAttribute = Allnodes[n] + ".filename"
-        print(currentAttribute)
+
         # Adds this PxrTextureName to a list
         PxrTextureList.append(Allnodes[n])
         # Call and store the filename indicated on the PxrTexture
