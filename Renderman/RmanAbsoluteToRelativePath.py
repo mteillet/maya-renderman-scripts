@@ -35,7 +35,6 @@ for i in Allnodes:
 
         # Check if the filename contains the current Worskpace path
         if currentWorkspace in checkAttribute:
-            print(checkAttribute)
             
             #Replace the workspace path by <ws>/ and stores it as a new string
             newAttribute = checkAttribute.replace(currentWorkspace, "<ws>/")
