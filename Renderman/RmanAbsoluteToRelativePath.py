@@ -3,6 +3,7 @@ import maya.cmds as cmds
 ####    This script goes through all the pxrTexture nodes of a scene, checks if their filepath contains the project path and if so change it to <ws> (relative path) 
 
 #selecting all dependency nodes in the scene
+
 cmds.select(adn = True)
 
 #Storing all nodes in a list and printing it
@@ -16,12 +17,13 @@ failCount = 0
 PxrTextureList = []
 PxrFailList = []
 currentWorkspace = cmds.workspace( q=True, rd=True)
+cochonCount = 0
+cochonTextures = []
 
 #Checking object type
 for i in Allnodes:
     objType = cmds.objectType(Allnodes[n])    
 
-    print (objType)
 
     # If object type is pixar texture, append it to a new list
     if objType == "PxrTexture":
@@ -32,6 +34,16 @@ for i in Allnodes:
         PxrTextureList.append(Allnodes[n])
         # Call and store the filename indicated on the PxrTexture
         checkAttribute = cmds.getAttr(currentAttribute)
+
+        """ VERSION 2.0 """
+        # Check if the texture contains either the current project path or the <ws> flag
+        if currentWorkspace not in checkAttribute:
+            if "<ws>" not in checkAttribute:
+                print ("ERROR : --- The texture is not in the project !")
+                print(checkAttribute)
+                cochonCount += 1
+                cochonTextures.append(checkAttribute)
+
 
         # Check if the filename contains the current Worskpace path
         if currentWorkspace in checkAttribute:
@@ -77,3 +89,28 @@ if failCount > 0 :
     print ("The filepaths of these might not have been changed because they are still set on your previous project location.  If not, try closing and reopening Maya.")
     print ("Filepath of the following nodes could not be changed:")
     print (PxrFailList)
+
+
+# Error window
+if cochonCount > 0:
+    window = cmds.window( title="C:/ to <ws>", iconName='C > ws', widthHeight=(400, 500) )
+    cmds.columnLayout( adjustableColumn=True )
+
+    cmds.button( label='Error Log' )
+    strError = str(cochonCount) + " textures were considered as out of the project path"
+    cmds.text( label=' ', align='center' )
+    cmds.text( label=' ', align='center' )
+    cmds.text( label="- WARNING -", align='center' )
+    cmds.text( label=str(strError), align='center' )
+    cmds.text( label=' ', align='center' )
+    cmds.text( label=' ', align='center' )
+
+    cmds.text( label="- The following textures are not set in the project -", align='center' )
+    current = 0
+    for i in cochonTextures:
+        cmds.text( label=str(cochonTextures[current]), align='center' )
+        current += 1
+    cmds.text( label=' ', align='center' )
+    cmds.button( label='Close', command=('cmds.deleteUI(\"' + window + '\", window=True)') )
+    cmds.setParent( '..' )
+    cmds.showWindow( window )
