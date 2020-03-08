@@ -15,7 +15,7 @@ Then it remerges the alembic files and deletes the ancient Alembic nodes which h
 
 
 # RmanAbsoluteToRelativePath.py
-This script allows you to change all of your PxrTexture nodes filename from an absolute to a relative one. before you move a project from one location to another one.
+This script allows you to change all of your PxrTexture, PxrMultiTexture, and PxrDomelight nodes filename from an absolute to a relative one. before you move a project from one location to another one.
 
 Example : it would change "c:/usr/desktop/project/sourceimages/anytexture.tiff"
 to "<ws>/sourceimages/anytexture.tiff"
