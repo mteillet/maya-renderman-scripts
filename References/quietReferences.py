@@ -23,17 +23,47 @@ def checkMayaFiles(currentProj):
                 tempVar = str(r) + "/" + str(f[current])
                 tempVar = tempVar.replace("\\", "/")
                 fileList.append(tempVar)
-                print("Match")
             else:
                 pass
+            current += 1
     print("Found a total of " + str(len(fileList)) + " matches")
     return(fileList)
 
 def quietFiles(studentFiles):
     current = 0
+    
     for i in studentFiles:
-        with f as file 
-        print("test")
+        fileToOpen = studentFiles[current]
+        
+        # Opening the file and storing the lines in a list
+        f = open(fileToOpen, "r")
+        lines = f.readlines()
+        f.close
+        
+        # checking if the 13th line is student version
+        checkMessage = ("Checking the file :" + str(fileToOpen))
+        print(checkMessage)
+        licenseMessage = 'fileInfo "license" "student";'
+        subcurrent = 0
+        for i in lines:
+            if lines[subcurrent].startswith(licenseMessage):
+                # Check the line
+                print("StudentVersion detected")
+                del lines[subcurrent] # Remove the line
+                
+                  
+            else:
+                pass
+                
+            subcurrent += 1
+        
+        # Reopen the file to write without the student line
+        f = open(fileToOpen, "w")
+        f.writelines(lines)
+        f.close()
+              
+        
+        current += 1
     
 
 if __name__ == "__main__":
