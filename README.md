@@ -5,6 +5,11 @@ All scripts are free to use and to share.
 For more informations, contact me.
 
 
+# QuietReferences.py
+This script allows you to set your project and run it in order to get rid of all of the student pop up messages when you use maya
+
+Especially useful when working on scenes using a lot of references
+
 
 # AlembicRelativeRepath.py
 This scripts allow you to remerge the alembic broken links to the correct ones when you change your project location.
